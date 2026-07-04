@@ -1,0 +1,222 @@
+/* --- RESET & BASE --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body {
+  background-color: #f9fafb;
+  color: #1f2937;
+}
+
+/* Suppression définitive du soulignement sous les liens */
+a {
+  text-decoration: none !important;
+  color: inherit;
+}
+
+/* --- NAVBAR RESPONSIVE --- */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 5%;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.logo { 
+  font-size: 1.5rem; 
+  font-weight: bold; 
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.logo span { color: #2563eb; }
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+.nav-links a { 
+  font-weight: 500; 
+  transition: color 0.2s;
+  color: #4b5563;
+}
+.nav-links a:hover { color: #2563eb; }
+
+.cart-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.cart-btn:hover {
+  background: #dbeafe;
+}
+
+/* --- HERO SECTION --- */
+.hero {
+  min-height: 60vh;
+  background: linear-gradient(rgba(17, 24, 39, 0.75), rgba(17, 24, 39, 0.75)), 
+              url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200') center/cover;
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center;
+  text-align: center; 
+  color: white; 
+  padding: 3rem 1rem;
+}
+.hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); margin-bottom: 1rem; }
+.hero p { font-size: clamp(1rem, 2.5vw, 1.25rem); color: #e5e7eb; margin-bottom: 2rem; max-width: 600px; }
+
+.btn-primary {
+  background: #2563eb; color: white; padding: 0.8rem 1.8rem;
+  border-radius: 6px; font-weight: bold; border: none; cursor: pointer; transition: 0.3s;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.btn-primary:hover { background: #1d4ed8; }
+
+/* --- GRILLE PRODUITS & SECTIONS --- */
+.section { padding: 4rem 5%; max-width: 1200px; margin: auto; }
+.section-title { text-align: center; font-size: 2rem; margin-bottom: 2.5rem; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+.card {
+  background: white; border-radius: 10px; overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; transition: transform 0.2s;
+  display: flex; flex-direction: column;
+}
+.card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+.card img { width: 100%; height: 280px; object-fit: cover; }
+.card-body { padding: 1.2rem; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+.card-title { font-size: 1.1rem; font-weight: 600; }
+.card-price { color: #2563eb; font-weight: bold; font-size: 1.1rem; }
+
+.btn-add { 
+  background: #1f2937; color: white; border: none; padding: 0.6rem 1rem; 
+  border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+  transition: background 0.2s;
+}
+.btn-add:hover { background: #2563eb; }
+
+/* --- CONTACT & FORMULAIRE --- */
+.contact-form { 
+  max-width: 550px; margin: 0 auto; background: white; padding: 2rem; 
+  border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+}
+.form-group { margin-bottom: 1.2rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+.form-group input, .form-group textarea { 
+  width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;
+}
+
+/* --- FOOTER --- */
+.footer { background: #111827; color: #9ca3af; text-align: center; padding: 2rem; margin-top: 4rem; }
+
+@media (max-width: 600px) {
+  .navbar { flex-direction: column; text-align: center; }
+  .nav-links { width: 100%; justify-content: center; }
+}
+/* --- ESPACE ADMINISTRATEUR --- */
+.admin-container {
+  padding: 3rem 5%;
+  max-width: 1200px;
+  margin: auto;
+}
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2.5rem;
+}
+
+/* Formulaire d'ajout */
+.admin-card {
+  background: white;
+  padding: 1.8rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
+}
+.admin-card h3 {
+  margin-bottom: 1.2rem;
+  font-size: 1.2rem;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Tableau des produits */
+.table-responsive {
+  overflow-x: auto;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+.admin-table th, .admin-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+.admin-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #4b5563;
+}
+.admin-item-img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.btn-delete {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+.btn-delete:hover {
+  background: #dc2626;
+}
+
+@media (max-width: 850px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
