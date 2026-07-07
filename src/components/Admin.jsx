@@ -1,338 +1,405 @@
 import React, { useState } from 'react';
-import { PlusCircle, Trash2, Package, Lock, Mail, KeyRound, Upload, Link as LinkIcon } from 'lucide-react';
+import { PlusCircle, Trash2, ShieldAlert, KeyRound, Mail, ArrowRight, Shirt, Scissors } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 
-const INITIAL_PRODUCTS = [
-  { id: 1, name: 'Veste Élégante', price: '4500 fc', image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=500' },
-  { id: 2, name: 'Chemise Slim Fit', price: '25000 fc', image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500' },
-  { id: 3, name: 'Pantalon Casual', price: '3000 fc', image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=500' },
-];
+// --- ICÔNES SVG PERSONNALISÉES POUR LE LOOK ATELIER DE MODE ---
+const PantsIcon = ({ className, size = 24, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className} {...props}>
+    <path d="M6 2h12v5l-1.5 15h-4.5v-9h-2v9H5.5L4 7V2h2z" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const DressIcon = ({ className, size = 24, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className} {...props}>
+    <path d="M9 2h6l3 4-2.5 5 4 11H4.5l4-11L6 6l3-2z" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
 
 export default function Admin() {
-  // Récupération des notifications en temps réel depuis le ShopContext
-  const { notifications } = useShop();
+  const { products, addProduct, deleteProduct } = useShop();
 
-  // --- ÉTATS D'AUTHENTIFICATION OTP ---
-  const [authStep, setAuthStep] = useState('LOGIN'); // 'LOGIN' | 'OTP' | 'AUTHENTICATED'
+  // --- ÉTATS D'AUTHENTIFICATION ---
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
-  const [otpCode, setOtpCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [generatedOtp, setGeneratedOtp] = useState('');
+  const [userOtpInput, setUserOtpInput] = useState('');
+  const [isLampOn, setIsLampOn] = useState(false); // Éteint par défaut (Noir total)
+  const [authError, setAuthError] = useState('');
 
-  // --- ÉTATS DU CATALOGUE & FORMULAIRE ---
-  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  // --- ÉTATS DU FORMULAIRE PRODUIT ---
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
-  const [imageMode, setImageMode] = useState('file'); // 'file' ou 'url'
+  const [category, setCategory] = useState('homme');
+  const [desc, setDesc] = useState('');
+  const [sizes, setSizes] = useState('');
+  const [colors, setColors] = useState('');
+  const [imageType, setImageType] = useState('url'); 
   const [imageUrl, setImageUrl] = useState('');
-  const [imageFilePreview, setImageFilePreview] = useState(null);
+  const [imageFileString, setImageFileString] = useState('');
 
-  // Simulation : Envoi du code OTP
-  const handleSendOtp = (e) => {
+  // --- LOGIQUE OTP ---
+  const handleRequestOtp = (e) => {
     e.preventDefault();
-    if (!email) return;
-    alert(`Un code de vérification OTP a été envoyé à : ${email}\n(Pour tester immédiatement, tapez : 123456)`);
-    setAuthStep('OTP');
+    if (!email.trim() || !email.includes('@')) {
+      setAuthError("Veuillez entrer un e-mail valide.");
+      return;
+    }
+    setAuthError('');
+    const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedOtp(randomOtp);
+    setOtpSent(true);
   };
 
-  // Simulation : Vérification du code OTP
   const handleVerifyOtp = (e) => {
     e.preventDefault();
-    if (otpCode === '123456') {
-      setAuthStep('AUTHENTICATED');
+    if (userOtpInput === generatedOtp) {
+      setIsAuthenticated(true);
+      setAuthError('');
     } else {
-      alert('Code OTP incorrect. Veuillez réessayer (Code de test : 123456)');
+      setAuthError("Code OTP incorrect.");
     }
   };
 
-  // Gestion de la sélection d'une image locale (téléphone / PC)
-  const handleFileChange = (e) => {
+  // --- LOGIQUE PRODUITS ---
+  const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFilePreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onloadend = () => setImageFileString(reader.result);
+      reader.readAsDataURL(file);
     }
   };
 
-  // Ajout d'un nouveau produit
-  const handleAddProduct = (e) => {
+  const handleSubmitProduct = (e) => {
     e.preventDefault();
-    const finalImage = imageMode === 'file' ? imageFilePreview : imageUrl;
-    
-    if (!name || !price || !finalImage) {
-      alert('Veuillez remplir tous les champs et fournir une image.');
+    if (!name || !price || !desc) {
+      alert("Veuillez remplir les champs obligatoires.");
+      return;
+    }
+    const finalImage = imageType === 'url' ? imageUrl : imageFileString;
+    if (!finalImage) {
+      alert("Veuillez ajouter une photo.");
       return;
     }
 
-    const newProduct = {
+    const newClothes = {
       id: Date.now(),
       name,
-      price: price.includes('DH') ? price : `${price} DH`,
-      image: finalImage
+      price: `${Number(price).toLocaleString()} FC`,
+      numericPrice: Number(price),
+      category,
+      image: finalImage,
+      desc,
+      sizes: sizes ? sizes.split(',').map(s => s.trim().toUpperCase()) : ['Unique'],
+      colors: colors ? colors.split(',').map(c => c.trim()) : ['Multicolore']
     };
 
-    setProducts([newProduct, ...products]);
-    setName('');
-    setPrice('');
-    setImageUrl('');
-    setImageFilePreview(null);
-  };
-
-  // Suppression d'un produit
-  const handleDeleteProduct = (id) => {
-    setProducts(products.filter(product => product.id !== id));
+    addProduct(newClothes);
+    setName(''); setPrice(''); setDesc(''); setSizes(''); setColors(''); setImageUrl(''); setImageFileString('');
+    alert("Vêtement ajouté au catalogue !");
   };
 
   // ==========================================
-  // ÉCRAN 1 : SAISIE DE L'EMAIL
+  // RENDER 1 : LE CONCEPT "CUTE LAMP LOGIN" INSTAGRAM
   // ==========================================
-  if (authStep === 'LOGIN') {
+  if (!isAuthenticated) {
     return (
-      <div className="section" style={{ maxWidth: '450px', margin: '4rem auto' }}>
-        <div className="admin-card" style={{ textAlign: 'center' }}>
-          <Lock size={40} color="#2563eb" style={{ margin: '0 auto 1rem' }} />
-          <h2 style={{ marginBottom: '0.5rem' }}>Accès Sécurisé</h2>
-          <p style={{ color: '#6b7280', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-            Veuillez entrer votre email administrateur pour recevoir votre code OTP à usage unique.
-          </p>
-          <form onSubmit={handleSendOtp} style={{ textAlign: 'left' }}>
-            <div className="form-group">
-              <label><Mail size={16} /> Email Administrateur</label>
-              <input 
-                type="email" 
-                placeholder="admin@milungubusiness.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required 
-              />
+      <div style={{ 
+        position: 'relative', 
+        minHeight: '100vh', 
+        background: '#070708', // Fond ultra noir (ambiance nuit)
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        padding: '2rem',
+        overflow: 'hidden',
+        fontFamily: 'sans-serif'
+      }}>
+        
+        {/* --- STYLES CSS POUR LES ANIMATIONS ET LA LAMPE --- */}
+        <style>{`
+          @keyframes floatFashion {
+            0% { transform: translateY(0px) rotate(0deg); opacity: 0.02; }
+            50% { transform: translateY(-20px) rotate(6deg); opacity: 0.06; }
+            100% { transform: translateY(0px) rotate(0deg); opacity: 0.02; }
+          }
+          .floating-clothing { position: absolute; color: #ffffff; pointer-events: none; animation: floatFashion 6s ease-in-out infinite; }
+
+          /* Conteneur principal Scène Lampe + Formulaire */
+          .auth-scene-container {
+            display: flex; align-items: center; justify-content: center; gap: 5rem;
+            max-width: 900px; width: 100%; z-index: 10;
+          }
+
+          /* --- REPRODUCTION DE LA CUTE DESK LAMP --- */
+          .desk-lamp-wrapper { display: flex; flex-direction: column; align-items: center; cursor: pointer; position: relative; }
+          
+          /* Tête / Abat-jour de la lampe */
+          .cute-shade {
+            width: 110px; height: 95px; 
+            background: ${isLampOn ? '#a7f3d0' : '#2d3748'}; 
+            border-radius: 50px 50px 15px 15px;
+            position: relative; transition: background 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: ${isLampOn ? '0 0 30px rgba(167, 243, 208, 0.6)' : 'none'};
+            display: flex; align-items: center; justify-content: center;
+          }
+
+          /* Le petit visage mignon sur la lampe */
+          .lamp-face { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 15px; }
+          .lamp-eyes { display: flex; gap: 30px; }
+          .lamp-eye { width: 8px; height: 8px; background: #1a202c; border-radius: 50%; }
+          .lamp-mouth { width: 14px; height: 8px; border: 2.5px solid #1a202c; border-top: none; border-radius: 0 0 10px 10px; }
+
+          /* Pied / Tige de la lampe */
+          .cute-rod { width: 6px; height: 100px; background: ${isLampOn ? '#cbd5e1' : '#4a5568'}; transition: background 0.3s; }
+          
+          /* Socle de la lampe */
+          .cute-base { width: 90px; height: 14px; background: ${isLampOn ? '#cbd5e1' : '#4a5568'}; border-radius: 10px; transition: background 0.3s; }
+
+          /* Faisceau lumineux directionnel de la petite lampe */
+          .desk-light-beam {
+            position: absolute; top: 90px; left: 55px; width: 450px; height: 320px;
+            background: linear-gradient(135deg, rgba(167, 243, 208, 0.12), rgba(167, 243, 208, 0));
+            clip-path: polygon(0 0, 100% 30%, 100% 100%, 0 80%);
+            opacity: ${isLampOn ? 1 : 0}; transition: opacity 0.4s ease; pointer-events: none; z-index: 1;
+          }
+
+          /* --- CARTE DE CONNEXION SOMBRE LOOK INSTAGRAM --- */
+          .instagram-dark-card {
+            background: #121214; width: 100%; max-width: 370px; padding: 2.5rem;
+            border-radius: 16px; border: 1px solid ${isLampOn ? 'rgba(74, 222, 128, 0.4)' : '#1f1f23'};
+            
+            /* Cache complètement ou révèle la carte selon la lumière */
+            opacity: ${isLampOn ? 1 : 0};
+            visibility: ${isLampOn ? 'visible' : 'hidden'};
+            transform: ${isLampOn ? 'translateX(0px)' : 'translateX(40px)'};
+            box-shadow: ${isLampOn ? '0 0 40px rgba(74, 222, 128, 0.15)' : 'none'};
+            pointer-events: ${isLampOn ? 'auto' : 'none'};
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          .insta-input-box {
+            width: 100%; padding: 0.8rem 0.8rem 0.8rem 2.5rem; background: #1a1a1e;
+            border: 1px solid #2a2a32; color: #ffffff; border-radius: 8px; outline: none; transition: border-color 0.3s;
+          }
+          .insta-input-box:focus { border-color: #22c55e; }
+
+          .btn-insta-green {
+            width: 100%; padding: 0.85rem; background: #22c55e; color: #ffffff;
+            border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+            transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+          }
+          .btn-insta-green:hover { background: #16a34a; }
+        `}</style>
+
+        {/* --- HABITS EN ARRIÈRE-PLAN --- */}
+        <Shirt className="floating-clothing" size={100} style={{ top: '10%', left: '12%', animationDelay: '0s' }} />
+        <PantsIcon className="floating-clothing" size={85} style={{ bottom: '15%', left: '20%', animationDelay: '1.5s' }} />
+        <DressIcon className="floating-clothing" size={95} style={{ top: '15%', right: '15%', animationDelay: '3s' }} />
+        <Scissors className="floating-clothing" size={60} style={{ bottom: '20%', right: '25%', animationDelay: '4.5s' }} />
+
+        {/* --- ESPACE INTERACTIF : LAMPE À GAUCHE, FORMULAIRE À DROITE --- */}
+        <div className="auth-scene-container">
+          
+          {/* LA PETITE LAMPE DE BUREAU */}
+          <div className="desk-lamp-wrapper" onClick={() => setIsLampOn(!isLampOn)} title="Clique sur la lampe pour allumer">
+            <div className="cute-shade">
+              <div className="lamp-face">
+                <div className="lamp-eyes">
+                  <div className="lamp-eye"></div>
+                  <div className="lamp-eye"></div>
+                </div>
+                <div className="lamp-mouth"></div>
+              </div>
             </div>
-            <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-              Recevoir le code OTP
-            </button>
-          </form>
+            <div className="cute-rod"></div>
+            <div className="cute-base"></div>
+            
+            {/* RAYON LUMINEUX VERS LA DROITE */}
+            <div className="desk-light-beam"></div>
+          </div>
+
+          {/* LE FORMULAIRE STYLE GLOW NEON (RÉVÉLÉ UNIQUEMENT PAR LA LAMPE) */}
+          <div className="instagram-dark-card">
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 'bold', m: 0 }}>Welcome Back</h2>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '0.4rem' }}>Connectez-vous pour gérer les collections</p>
+            </div>
+
+            {authError && (
+              <div style={{ padding: '0.6rem', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid #ef4444', borderRadius: '6px', fontSize: '0.8rem', marginBottom: '1.2rem', textAlign: 'center' }}>
+                {authError}
+              </div>
+            )}
+
+            {!otpSent ? (
+              <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div>
+                  <label style={{ color: '#94a3b8', fontSize: '0.8rem', display: 'block', marginBottom: '0.4rem' }}>Username or Email</label>
+                  <div style={{ position: 'relative' }}>
+                    <Mail size={16} color="#4b5563" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                    <input 
+                      type="email" 
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="admin@milungu.com" 
+                      className="insta-input-box"
+                    />
+                  </div>
+                </div>
+                <button type="submit" className="btn-insta-green">
+                  Login <ArrowRight size={16} />
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '0.8rem', borderRadius: '6px', color: '#4ade80', fontSize: '0.8rem', textAlign: 'center' }}>
+                  🔑 Code OTP généré pour la session : <br />
+                  <span style={{ fontFamily: 'monospace', fontWeight: '900', fontSize: '1.1rem', color: '#ffffff' }}>{generatedOtp}</span>
+                </div>
+
+                <div>
+                  <label style={{ color: '#94a3b8', fontSize: '0.8rem', display: 'block', marginBottom: '0.4rem' }}>Password / OTP Code</label>
+                  <div style={{ position: 'relative' }}>
+                    <KeyRound size={16} color="#4b5563" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                    <input 
+                      type="text" 
+                      maxLength="6"
+                      required
+                      value={userOtpInput}
+                      onChange={(e) => setUserOtpInput(e.target.value)}
+                      placeholder="------" 
+                      className="insta-input-box"
+                      style={{ letterSpacing: '4px', textAlign: 'center', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" className="btn-insta-green">
+                  Vérifier et Entrer
+                </button>
+              </form>
+            )}
+          </div>
+
         </div>
       </div>
     );
   }
 
   // ==========================================
-  // ÉCRAN 2 : SAISIE DU CODE OTP
-  // ==========================================
-  if (authStep === 'OTP') {
-    return (
-      <div className="section" style={{ maxWidth: '450px', margin: '4rem auto' }}>
-        <div className="admin-card" style={{ textAlign: 'center' }}>
-          <KeyRound size={40} color="#2563eb" style={{ margin: '0 auto 1rem' }} />
-          <h2 style={{ marginBottom: '0.5rem' }}>Vérification OTP</h2>
-          <p style={{ color: '#6b7280', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-            Code envoyé à <strong>{email}</strong>.
-          </p>
-          <form onSubmit={handleVerifyOtp} style={{ textAlign: 'left' }}>
-            <div className="form-group">
-              <label>Code à 6 chiffres</label>
-              <input 
-                type="text" 
-                placeholder="123456" 
-                maxLength="6"
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value)}
-                style={{ textAlign: 'center', letterSpacing: '8px', fontSize: '1.2rem', fontWeight: 'bold' }}
-                required 
-              />
-            </div>
-            <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-              Valider et Entrer
-            </button>
-            <button 
-              type="button" 
-              onClick={() => setAuthStep('LOGIN')} 
-              style={{ width: '100%', background: 'none', border: 'none', color: '#6b7280', marginTop: '1rem', cursor: 'pointer' }}
-            >
-              Changer d'email
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  // ==========================================
-  // ÉCRAN 3 : TABLEAU DE BORD (AUTHENTIFIÉ)
+  // RENDER 2 : LE TABLEAU DE BORD (ACCESSIBLE APRÈS CONNEXION)
   // ==========================================
   return (
-    <div className="admin-container">
-      <div className="admin-header">
-        <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>Panneau d'Administration</h1>
-          <p style={{ color: '#6b7280' }}>Connecté en tant que : <strong>{email}</strong></p>
+    <div className="section" style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem' }}>
+      <div style={{ background: '#fff3f5', border: '1px solid #fecdd3', padding: '1rem', borderRadius: '8px', display: 'flex', justifyBetween: 'space-between', alignItems: 'center', marginBottom: '2rem', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+          <ShieldAlert color="#e11d48" />
+          <span style={{ fontSize: '0.9rem', color: '#9f1239', fontWeight: '600' }}>
+            Session Administrateur Active — {email}
+          </span>
         </div>
         <button 
-          onClick={() => { setAuthStep('LOGIN'); setEmail(''); setOtpCode(''); }}
-          style={{ padding: '0.5rem 1rem', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+          onClick={() => { setIsAuthenticated(false); setOtpSent(false); setUserOtpInput(''); setIsLampOn(false); }}
+          style={{ background: '#e11d48', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
         >
           Déconnexion
         </button>
       </div>
 
-      {/* --- CENTRE DE NOTIFICATIONS EN DIRECT --- */}
-      {notifications && notifications.length > 0 && (
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '1.2rem', borderRadius: '10px', marginBottom: '2rem' }}>
-          <h3 style={{ color: '#92400e', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            🔔 Notifications de la boutique ({notifications.length})
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {notifications.map((notif) => (
-              <div 
-                key={notif.id} 
-                style={{ 
-                  background: 'white', 
-                  padding: '0.8rem 1rem', 
-                  borderRadius: '6px', 
-                  borderLeft: notif.type === 'ACHAT' ? '4px solid #10b981' : '4px solid #f59e0b', 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center', 
-                  flexWrap: 'wrap',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                }}
-              >
-                <div>
-                  <strong style={{ color: '#1f2937' }}>{notif.clientName}</strong> a {notif.type === 'ACHAT' ? 'acheté' : 'réservé'} :{' '}
-                  <span style={{ fontWeight: '600', color: '#2563eb' }}>{notif.productName}</span> ({notif.price})
-                </div>
-                <span style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>à {notif.date}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="admin-grid">
-        {/* COLONNE GAUCHE : Formulaire d'ajout */}
-        <div className="admin-card">
-          <h3><PlusCircle size={20} color="#2563eb" /> Ajouter un habit</h3>
-          <form onSubmit={handleAddProduct}>
-            <div className="form-group">
-              <label>Nom de l'habit</label>
-              <input 
-                type="text" 
-                placeholder="ex: Veste en Cuir" 
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required 
-              />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem', alignItems: 'start' }}>
+        
+        {/* FORMULAIRE D'AJOUT VÊTEMENTS */}
+        <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '1.5rem', color: '#1e293b' }}>Ajouter un Vêtement</h3>
+          
+          <form onSubmit={handleSubmitProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#475569' }}>Nom du modèle</label>
+              <input type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Robe Soie Émeraude" style={{ width: '100%', padding: '0.7rem', marginTop: '0.3rem', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
             </div>
 
-            <div className="form-group">
-              <label>Prix</label>
-              <input 
-                type="text" 
-                placeholder="ex: 10000fc" 
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                required 
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#475569' }}>Prix (en FC)</label>
+                <input type="number" required value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Ex: 95000" style={{ width: '100%', padding: '0.7rem', marginTop: '0.3rem', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#475569' }}>Rayon</label>
+                <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '100%', padding: '0.7rem', marginTop: '0.3rem', borderRadius: '4px', border: '1px solid #cbd5e1', background: 'white' }}>
+                  <option value="homme">Homme</option>
+                  <option value="femme">Femme</option>
+                </select>
+              </div>
             </div>
 
-            {/* SÉLECTEUR DE SOURCE D'IMAGE */}
-            <div className="form-group">
-              <label>Source de l'image</label>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.8rem' }}>
-                <button
-                  type="button"
-                  onClick={() => setImageMode('file')}
-                  style={{
-                    flex: 1, padding: '0.5rem', borderRadius: '6px', cursor: 'pointer', border: '1px solid #d1d5db',
-                    background: imageMode === 'file' ? '#eff6ff' : 'white',
-                    color: imageMode === 'file' ? '#2563eb' : '#4b5563',
-                    fontWeight: imageMode === 'file' ? 'bold' : 'normal',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem'
-                  }}
-                >
-                  <Upload size={16} /> Fichier (Téléphone/PC)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setImageMode('url')}
-                  style={{
-                    flex: 1, padding: '0.5rem', borderRadius: '6px', cursor: 'pointer', border: '1px solid #d1d5db',
-                    background: imageMode === 'url' ? '#eff6ff' : 'white',
-                    color: imageMode === 'url' ? '#2563eb' : '#4b5563',
-                    fontWeight: imageMode === 'url' ? 'bold' : 'normal',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem'
-                  }}
-                >
-                  <LinkIcon size={16} /> Lien en ligne
-                </button>
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#475569' }}>Description textile complète</label>
+              <textarea required value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Détails du tissu, coupe..." rows="3" style={{ width: '100%', padding: '0.7rem', marginTop: '0.3rem', borderRadius: '4px', border: '1px solid #cbd5e1', resize: 'none' }}></textarea>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#475569' }}>Tailles (Ex: S, M, L)</label>
+                <input type="text" value={sizes} onChange={(e) => setSizes(e.target.value)} placeholder="Séparées par des virgules" style={{ width: '100%', padding: '0.7rem', marginTop: '0.3rem', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#475569' }}>Couleurs (Ex: Bleu, Vert)</label>
+                <input type="text" value={colors} onChange={(e) => setColors(e.target.value)} placeholder="Séparées par des virgules" style={{ width: '100%', padding: '0.7rem', marginTop: '0.3rem', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
+              </div>
+            </div>
+
+            <div style={{ border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '6px', background: '#f8fafc' }}>
+              <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '0.5rem' }}>Image de la tenue</label>
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.8rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  <input type="radio" checked={imageType === 'url'} onChange={() => setImageType('url')} /> URL Web
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  <input type="radio" checked={imageType === 'file'} onChange={() => setImageType('file')} /> Charger le fichier
+                </label>
               </div>
 
-              {/* INPUT SI MODE FICHIER */}
-              {imageMode === 'file' ? (
-                <div>
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{ padding: '0.5rem 0' }}
-                  />
-                  {imageFilePreview && (
-                    <img src={imageFilePreview} alt="Aperçu" style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '6px', marginTop: '0.5rem', border: '1px solid #e5e7eb' }} />
-                  )}
-                </div>
+              {imageType === 'url' ? (
+                <input type="text" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://lien-image.com" style={{ width: '100%', padding: '0.6rem', borderRadius: '4px', border: '1px solid #cbd5e1', background: 'white' }} />
               ) : (
-                /* INPUT SI MODE LIEN EN LIGNE */
-                <input 
-                  type="url" 
-                  placeholder="https://images.unsplash.com/..." 
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <input type="file" accept="image/*" onChange={handleFileUpload} style={{ fontSize: '0.85rem' }} />
+                  {imageFileString && <span style={{ color: '#16a34a', fontSize: '0.75rem', fontWeight: '600' }}>✓ Prêt</span>}
+                </div>
               )}
             </div>
 
-            <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
-              Publier l'article
+            <button type="submit" className="btn-red" style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+              <PlusCircle size={18} /> Publier le modèle
             </button>
           </form>
         </div>
 
-        {/* COLONNE DROITE : Catalogue */}
-        <div className="admin-card">
-          <h3><Package size={20} color="#2563eb" /> Catalogue actuel ({products.length})</h3>
-          
-          {products.length === 0 ? (
-            <p style={{ color: '#6b7280', textAlign: 'center', padding: '2rem 0' }}>Aucun produit dans la boutique.</p>
-          ) : (
-            <div className="table-responsive">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Image</th>
-                    <th>Nom</th>
-                    <th>Prix</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product) => (
-                    <tr key={product.id}>
-                      <td>
-                        <img src={product.image} alt={product.name} className="admin-item-img" />
-                      </td>
-                      <td style={{ fontWeight: '600' }}>{product.name}</td>
-                      <td style={{ color: '#2563eb', fontWeight: 'bold' }}>{product.price}</td>
-                      <td>
-                        <button 
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="btn-delete"
-                        >
-                          <Trash2 size={16} /> Supprimer
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+        {/* LISTE DES ARTICLES EN DIRECT */}
+        <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '1.5rem', color: '#1e293b' }}>Articles en vitrine ({products.length})</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '560px', overflowY: 'auto' }}>
+            {products.map(product => (
+              <div key={product.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.8rem', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                  <img src={product.image} alt="" style={{ width: '45px', height: '55px', objectFit: 'cover', borderRadius: '4px' }} />
+                  <div>
+                    <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#1e293b' }}>{product.name}</div>
+                    <span style={{ fontSize: '0.7rem', background: '#cbd5e1', padding: '2px 6px', borderRadius: '3px', marginRight: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>{product.category}</span>
+                    <span style={{ fontSize: '0.85rem', color: '#e11d48', fontWeight: '700' }}>{product.price}</span>
+                  </div>
+                </div>
+                <button onClick={() => deleteProduct(product.id)} style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.color = '#e11d48'} onMouseLeave={(e) => e.currentTarget.style.color = '#cbd5e1'}>
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
+
       </div>
     </div>
   );

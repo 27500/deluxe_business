@@ -1,105 +1,93 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, ArrowLeft, Trash2, CheckCircle, Clock } from 'lucide-react';
+import { Trash2, ArrowLeft, ShoppingBag, CreditCard } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 
 export default function Cart() {
-  const { cart, removeFromCart, processAction } = useShop();
-  const [clientName, setClientName] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const { cart, removeFromCart, clearCart } = useShop();
 
-  const handleAction = (index, item, type) => {
-    if (!clientName.trim()) {
-      alert('Veuillez entrer votre nom ou numéro de téléphone avant de confirmer !');
-      return;
-    }
+  // Calcul du montant total de la commande
+  const totalGeneral = cart ? cart.reduce((sum, item) => sum + item.numericPrice, 0) : 0;
 
-    processAction(clientName, item, type);
-    removeFromCart(index);
-
-    const actionText = type === 'ACHAT' ? 'acheté' : 'réservé';
-    setSuccessMessage(`Félicitations ! Vous avez ${actionText} l'article : ${item.name}. L'administrateur a été notifié !`);
-    
-    setTimeout(() => setSuccessMessage(''), 6000);
-  };
+  if (!cart || cart.length === 0) {
+    return (
+      <div className="section" style={{ textAlign: 'center', padding: '5rem 2rem' }}>
+        <ShoppingBag size={64} color="#cbd5e1" style={{ marginBottom: '1.5rem' }} />
+        <h2 style={{ color: '#1e293b', marginBottom: '1rem' }}>Votre panier est vide</h2>
+        <p style={{ color: '#64748b', marginBottom: '2rem' }}>Découvrez nos vêtements exclusifs hommes et femmes disponibles à Kinshasa.</p>
+        <Link to="/boutique" className="btn-red" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.8rem 2rem' }}>
+          <ArrowLeft size={18} /> Retourner à la boutique
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <section className="section" style={{ minHeight: '60vh' }}>
-      <h2 className="section-title">Votre Panier</h2>
+    <div className="section" style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b' }}>Votre Panier</h1>
+        {/* Lien de retour à la boutique premium */}
+        <Link to="/boutique" style={{ textDecoration: 'none', color: '#e11d48', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid #e11d48', transition: 'all 0.3s' }}>
+          <ArrowLeft size={16} /> Continuer les achats
+        </Link>
+      </div>
 
-      {/* Message de confirmation */}
-      {successMessage && (
-        <div style={{ background: '#ecfdf5', border: '1px solid #10b981', color: '#065f46', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', textAlign: 'center', fontWeight: 'bold' }}>
-          {successMessage}
-        </div>
-      )}
-
-      {cart.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '10px', border: '1px solid #e5e7eb' }}>
-          <ShoppingBag size={48} color="#9ca3af" style={{ margin: '0 auto 1rem' }} />
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Votre panier est actuellement vide</h3>
-          <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>Découvrez nos dernières créations et ajoutez des articles à votre panier.</p>
-          <Link to="/boutique" className="btn-primary">
-            <ArrowLeft size={18} /> Retourner à la boutique
-          </Link>
-        </div>
-      ) : (
-        <div>
-          {/* Champ d'identification rapide du client */}
-          <div style={{ background: '#eff6ff', padding: '1.2rem', borderRadius: '8px', marginBottom: '2rem', border: '1px solid #bfdbfe' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#1e3a8a' }}>
-              Pour acheter ou réserver, veuillez entrer votre nom ou numéro de téléphone :
-            </label>
-            <input 
-              type="text"
-              placeholder="ex: Blessing ou 0600000000"
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #93c5fd', fontSize: '1rem' }}
-            />
-          </div>
-
-          {/* Liste des articles dans le panier */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {cart.map((item, index) => (
-              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '1.2rem', borderRadius: '10px', border: '1px solid #e5e7eb', flexWrap: 'wrap', gap: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <img src={item.image} alt={item.name} style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '8px' }} />
-                  <div>
-                    <h4 style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{item.name}</h4>
-                    <span style={{ color: '#2563eb', fontWeight: 'bold' }}>{item.price}</span>
-                  </div>
-                </div>
-
-                {/* Actions du client */}
-                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                  <button 
-                    onClick={() => handleAction(index, item, 'ACHAT')}
-                    style={{ background: '#10b981', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                  >
-                    <CheckCircle size={16} /> Acheter
-                  </button>
-
-                  <button 
-                    onClick={() => handleAction(index, item, 'RESERVATION')}
-                    style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                  >
-                    <Clock size={16} /> Réserver
-                  </button>
-
-                  <button 
-                    onClick={() => removeFromCart(index)}
-                    style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                    title="Abandonner l'habit"
-                  >
-                    <Trash2 size={16} /> Abandonner
-                  </button>
-                </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', alignItems: 'start' }}>
+        
+        {/* LISTE DES ARTICLES */}
+        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+          {cart.map((item, index) => (
+            <div key={index} style={{ display: 'flex', gap: '1rem', padding: '1rem 0', borderBottom: index === cart.length - 1 ? 'none' : '1px solid #f1f5f9', alignItems: 'center' }}>
+              <img src={item.image} alt={item.name} style={{ width: '80px', height: '90px', objectFit: 'cover', borderRadius: '4px' }} />
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.25rem' }}>{item.name}</h3>
+                <span style={{ fontSize: '0.8rem', background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', color: '#64748b', textTransform: 'uppercase' }}>{item.category}</span>
+                <div style={{ fontWeight: 'bold', color: '#e11d48', marginTop: '0.5rem' }}>{item.price}</div>
               </div>
-            ))}
-          </div>
+              <button 
+                onClick={() => removeFromCart(item.id)} 
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', transition: 'color 0.2s' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#e11d48'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
+                title="Supprimer l'article"
+              >
+                <Trash2 size={20} />
+              </button>
+            </div>
+          ))}
+
+          <button onClick={clearCart} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', marginTop: '1rem' }}>
+            Vider complètement le panier
+          </button>
         </div>
-      )}
-    </section>
+
+        {/* RÉSUMÉ DE LA COMMANDE & TOTAL */}
+        <div style={{ background: '#f8fafc', padding: '2rem', borderRadius: '8px', border: '1px solid #e2e8f0', position: 'sticky', top: '20px' }}>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '1.5rem', color: '#1e293b' }}>Résumé de la commande</h2>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', color: '#64748b' }}>
+            <span>Articles ({cart.length})</span>
+            <span>{totalGeneral.toLocaleString()} FC</span>
+          </div>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', color: '#64748b' }}>
+            <span>Livraison (Kinshasa)</span>
+            <span style={{ color: '#16a34a', fontWeight: '600' }}>Gratuite</span>
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid #cbd5e1', marginBottom: '1.5rem' }} />
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1e293b' }}>Total à payer :</span>
+            <span style={{ fontSize: '1.6rem', fontWeight: '800', color: '#e11d48' }}>{totalGeneral.toLocaleString()} FC</span>
+          </div>
+
+          <button style={{ width: '100%', background: '#1e293b', color: 'white', border: 'none', padding: '1rem', borderRadius: '6px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.7rem', transition: 'background 0.2s' }}>
+            <CreditCard size={18} /> Passer la commande via WhatsApp
+          </button>
+        </div>
+
+      </div>
+    </div>
   );
 }

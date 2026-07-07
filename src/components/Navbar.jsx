@@ -1,70 +1,77 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, ShoppingCart, Search } from 'lucide-react';
-import { useShop } from '../context/ShopContext'; // <-- Import du Hook
+import { ShoppingBag, ShoppingCart, Search, Phone, Mail } from 'lucide-react';
+import { useShop } from '../context/ShopContext';
 
 export default function Navbar() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('tous');
   const navigate = useNavigate();
-  const { cart } = useShop(); // Récupération dynamique du panier
+  const { cart } = useShop();
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/boutique?recherche=${encodeURIComponent(searchTerm)}`);
-    } else {
-      navigate('/boutique');
-    }
+    let url = '/boutique?';
+    if (searchTerm.trim()) url += `recherche=${encodeURIComponent(searchTerm)}&`;
+    if (selectedCategory !== 'tous') url += `categorie=${selectedCategory}`;
+    navigate(url);
   };
 
-  const hasItems = cart.length > 0;
-
   return (
-    <nav className="navbar">
-      <Link to="/" className="logo">
-        <ShoppingBag color="#2563eb" size={28} />
-        Milungu's <span>Business</span>
-      </Link>
-      
-      <form onSubmit={handleSearch} style={{ display: 'flex', flex: '1', maxWidth: '350px', margin: '0 1rem' }}>
-        <div style={{ position: 'relative', width: '100%' }}>
-          <input
-            type="text"
-            placeholder="Chercher une veste, chemise..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.5rem 2.5rem 0.5rem 1rem',
-              borderRadius: '50px',
-              border: '1px solid #d1d5db',
-              outline: 'none'
-            }}
-          />
-          <button type="submit" style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
-            <Search size={18} />
-          </button>
+    <header>
+      {/* 1. TOP BAR */}
+      <div className="top-bar">
+        <div style={{ display: 'flex', gap: '1.5rem' }}>
+          <span><Phone size={12} style={{ marginRight: '4px' }} /> +243 810 000 000</span>
+          <span><Mail size={12} style={{ marginRight: '4px' }} /> contact@deluxeboutique.com</span>
         </div>
-      </form>
-
-      <div className="nav-links">
-        <Link to="/">Accueil</Link>
-        <Link to="/boutique">Boutique</Link>
-        <Link to="/contact">Contact</Link>
+        {/* L'espace Connexion/Inscription a été totalement retiré d'ici */}
       </div>
 
-      <Link 
-        to="/panier" 
-        className="cart-btn"
-        style={{
-          background: hasItems ? '#10b981' : '#eff6ff',
-          color: hasItems ? 'white' : '#2563eb',
-          transition: 'all 0.3s ease'
-        }}
-      >
-        <ShoppingCart size={20} />
-        Panier ({cart.length})
-      </Link>
-    </nav>
+      {/* 2. MAIN HEADER */}
+      <div className="main-header">
+        <Link to="/" className="logo">
+          <ShoppingBag color="#e11d48" size={32} />
+          Deluxe <span>Boutique</span>
+        </Link>
+
+        <form onSubmit={handleSearch} className="search-bar-classic">
+          <select 
+            value={selectedCategory} 
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
+            <option value="tous">Toutes catégories</option>
+            <option value="homme">Hommes</option>
+            <option value="femme">Femmes</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Chercher un vêtement, une chemise..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <button type="submit"><Search size={18} /></button>
+        </form>
+
+        <Link to="/panier" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#333', fontWeight: 'bold' }}>
+          <div style={{ position: 'relative' }}>
+            <ShoppingCart size={26} color="#e11d48" />
+            <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#333', color: 'white', borderRadius: '50%', width: '18px', height: '18px', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {cart ? cart.length : 0}
+            </span>
+          </div>
+          <span>Panier</span>
+        </Link>
+      </div>
+
+      {/* 3. NAV BAR */}
+      <nav className="nav-bar-dark">
+        <Link to="/">Accueil</Link>
+        <Link to="/boutique?categorie=homme">Collection Hommes</Link>
+        <Link to="/boutique?categorie=femme">Collection Femmes</Link>
+        <Link to="/boutique">Boutique Complète</Link>
+        <Link to="/contact">Contact & À Propos</Link>
+      </nav>
+    </header>
   );
 }
