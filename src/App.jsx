@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ShopProvider } from './context/ShopContext'; // <-- Import du Contexte
+import { ShopContextProvider } from './context/ShopContext';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ProductList from './components/ProductList';
@@ -8,6 +8,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import Cart from './components/Cart';
 import Admin from './components/Admin';
+import MessagesAdmin from './components/MessagesAdmin'; // <--- AJOUTÉ : Import du composant
 
 function HomePage() {
   return (
@@ -20,7 +21,7 @@ function HomePage() {
 
 function App() {
   return (
-    <ShopProvider> {/* <-- Enveloppe globale */}
+    <ShopContextProvider>
       <Router>
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
@@ -32,13 +33,14 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/panier" element={<Cart />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/messages-admin" element={<MessagesAdmin />} /> {/* <--- AJOUTÉ : Déclaration de la route */}
             </Routes>
           </main>
 
           <Footer />
         </div>
       </Router>
-    </ShopProvider>
+    </ShopContextProvider>
   );
 }
 

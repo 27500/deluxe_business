@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { useShop } from '../context/ShopContext'; // ✅ Importation du contexte
 
 export default function Contact() {
+  const { sendMessage } = useShop(); // ✅ Récupération de la fonction globale
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(`Merci ${formData.name}, votre message a bien été simulé ! Dès que nous brancherons le serveur Node.js, ce mail parviendra directement dans votre boîte.`);
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setIsSubmitting(true);
+
+    const success = await sendMessage(formData);
+
+    if (success) {
+      alert(`🎉 Merci ${formData.name}, votre message a bien été transmis à l'équipe administrative !`);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } else {
+      alert("❌ Une erreur est survenue lors de l'envoi de votre message. Veuillez vérifier si le serveur backend est en ligne.");
+    }
+    setIsSubmitting(false);
   };
 
   return (
@@ -98,8 +110,8 @@ export default function Contact() {
               ></textarea>
             </div>
 
-            <button type="submit" className="btn-red" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-              <Send size={16} /> Envoyer le message
+            <button type="submit" disabled={isSubmitting} className="btn-red" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: isSubmitting ? 0.7 : 1 }}>
+              <Send size={16} /> {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
             </button>
           </form>
         </div>
