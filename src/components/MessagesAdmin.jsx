@@ -9,7 +9,7 @@ export default function MessagesAdmin() {
 
   // Chargement des messages depuis le backend
   useEffect(() => {
-    fetch('${API_URL}/api/messages')
+    fetch(`${API_URL}/api/messages`)
       .then((res) => res.json())
       .then((data) => {
         setMessages(data);

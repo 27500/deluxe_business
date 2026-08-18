@@ -14,7 +14,7 @@ export function ShopContextProvider({ children }) {
   useEffect(() => {
     const loadProductsFromBackend = async () => {
       try {
-        const response = await fetch('${API_URL}/api/products');
+        const response = await fetch(`${API_URL}/api/products`);
         if (response.ok) {
           const data = await response.json();
           setProducts(data);
@@ -26,7 +26,7 @@ export function ShopContextProvider({ children }) {
 
     const loadMessagesFromBackend = async () => {
       try {
-        const response = await fetch('${API_URL}/api/messages');
+        const response = await fetch(`${API_URL}/api/messages`);
         if (response.ok) {
           const data = await response.json();
           setMessages(data);
@@ -68,7 +68,7 @@ export function ShopContextProvider({ children }) {
   // ==========================================
   const addProduct = async (newProduct) => {
     try {
-      const response = await fetch('${API_URL}/api/products', {
+      const response = await fetch(`${API_URL}/api/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProduct)
@@ -109,7 +109,7 @@ export function ShopContextProvider({ children }) {
   // ==========================================
   const sendMessage = async (messageData) => {
     try {
-      const response = await fetch('${API_URL}/api/messages', {
+      const response = await fetch(`${API_URL}/api/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(messageData)
@@ -177,9 +177,9 @@ export function ShopContextProvider({ children }) {
     <ShopContext.Provider value={{ 
       products, 
       cart,
-      messages,       // ✅ Exportation globale des messages
-      sendMessage,    // ✅ Fonction d'envoi
-      deleteMessage,  // ✅ Fonction de suppression
+      messages,      // ✅ Exportation globale des messages
+      sendMessage,   // ✅ Fonction d'envoi
+      deleteMessage, // ✅ Fonction de suppression
       activeCategory, 
       setActiveCategory,
       addProduct, 
