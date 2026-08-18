@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, Loader2, Trash2 } from 'lucide-react';
+import { API_URL } from '../config'; // Ajuste le chemin relatif selon l'emplacem
 
 export default function MessagesAdmin() {
   const [messages, setMessages] = useState([]);

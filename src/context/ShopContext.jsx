@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { API_URL } from '../config'; // Ajuste le chemin relatif selon l'emplacement du fichier (ex: './config')
 
 const ShopContext = createContext();
 

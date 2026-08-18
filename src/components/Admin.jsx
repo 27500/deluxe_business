@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Trash2, ShieldAlert, KeyRound, Mail, ArrowRight, ShoppingBag, LogOut, Loader2, Sparkles, Eye, X, ChevronLeft, ChevronRight, Plus, Minus, FileImage } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
+import { API_URL } from '../config'; 
 
 export default function Admin() {
   const { products, addProduct, deleteProduct } = useShop();
