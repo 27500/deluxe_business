@@ -139,7 +139,7 @@ export default function Admin() {
 
   // Soumission finale de l'article avec sa galerie de fichiers
   const handleSubmitProduct = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     console.log("🚀 Le bouton a été cliqué, début de la soumission !");
     setFormError('');
     setFormSuccess('');
@@ -396,7 +396,11 @@ export default function Admin() {
             </div>
           </div>
 
-          <button type="submit" style={{ width: '100%', padding: '0.9rem', backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 12px rgba(15,23,42,0.15)', marginTop: '0.5rem' }}>
+          <button 
+            type="button" 
+            onClick={handleSubmitProduct}
+            style={{ width: '100%', padding: '0.9rem', backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 12px rgba(15,23,42,0.15)', marginTop: '0.5rem' }}
+          >
             <PlusCircle size={18} style={{ color: '#e11d48' }} /> Publier le produit sur la boutique
           </button>
         </form>
