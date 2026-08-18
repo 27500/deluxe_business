@@ -30,11 +30,11 @@ export default function Admin() {
   const [sizes, setSizes] = useState('');
   const [colors, setColors] = useState('');
   
-  // NOUVEAU : États pour la gestion des messages du formulaire (Succès / Erreur)
+  // États pour la gestion des messages du formulaire (Succès / Erreur)
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   
-  // Image principale (Fichier local par défaut désormais)
+  // Image principale
   const [imageFileString, setImageFileString] = useState('');
   
   // Tableau dynamique stockant les chaînes Base64 des fichiers locaux secondaires
@@ -46,7 +46,7 @@ export default function Admin() {
 
   // Gestion des champs de fichiers locaux dynamiques
   const handleAddPhotoField = () => {
-    setSecondaryImages([...secondaryImages, '']); // Ajoute un emplacement vide pour le nouveau fichier
+    setSecondaryImages([...secondaryImages, '']); 
   };
 
   const handleSecondaryFileUpload = (index, e) => {
@@ -55,7 +55,7 @@ export default function Admin() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const updatedImages = [...secondaryImages];
-        updatedImages[index] = reader.result; // Stocke la chaîne Base64 du fichier
+        updatedImages[index] = reader.result; 
         setSecondaryImages(updatedImages);
       };
       reader.readAsDataURL(file);
@@ -111,7 +111,6 @@ export default function Admin() {
     if (userOtpInput === generatedOtp) {
       setIsAuthenticated(true);
       setAuthError('');
-      // Sauvegarde dans le localStorage pour éviter la déconnexion au rafraîchissement
       localStorage.setItem('deluxe_admin_auth', 'true');
       localStorage.setItem('deluxe_admin_email', email.trim().toLowerCase());
     } else {
@@ -124,7 +123,6 @@ export default function Admin() {
     setIsAuthenticated(false);
     setOtpSent(false);
     setUserOtpInput('');
-    // Nettoyage complet du localStorage
     localStorage.removeItem('deluxe_admin_auth');
     localStorage.removeItem('deluxe_admin_email');
   };
@@ -142,6 +140,7 @@ export default function Admin() {
   // Soumission finale de l'article avec sa galerie de fichiers
   const handleSubmitProduct = async (e) => {
     e.preventDefault();
+    console.log("🚀 Le bouton a été cliqué, début de la soumission !");
     setFormError('');
     setFormSuccess('');
 
@@ -166,7 +165,7 @@ export default function Admin() {
         category,
         image: imageFileString,
         image_url: imageFileString,
-        images: [imageFileString, ...cleanSecondaryImages], // Fusionne la principale et les fichiers secondaires
+        images: [imageFileString, ...cleanSecondaryImages], 
         desc,
         description: desc,
         sizes: sizes ? sizes.split(',').map(s => s.trim().toUpperCase()) : ['Unique'],
@@ -184,7 +183,6 @@ export default function Admin() {
       setImageFileString(''); 
       setSecondaryImages([]);
       
-      // Message de succès UI dynamique
       setFormSuccess("🎉 Article et sa galerie de fichiers enregistrés avec succès !");
     } catch (error) {
       setFormError("⚠️ Erreur lors de la publication : " + error.message);
@@ -194,7 +192,7 @@ export default function Admin() {
   const labelStyle = { display: 'block', fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' };
   const inputStyle = { width: '100%', padding: '0.75rem 1rem', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', fontSize: '0.88rem', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' };
 
-  // ÉCRAN DE CONNEXION (Affiché uniquement si non connecté)
+  // ÉCRAN DE CONNEXION
   if (!isAuthenticated) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '75vh', backgroundColor: '#f8fafc', padding: '2rem 1rem', fontFamily: 'sans-serif' }}>
@@ -249,7 +247,7 @@ export default function Admin() {
     );
   }
 
-  // ÉCRAN PRINCIPAL DE L'ESPACE ADMIN (Persistant)
+  // ÉCRAN PRINCIPAL DE L'ESPACE ADMIN
   return (
     <div style={{ maxWidth: '760px', margin: '2rem auto', padding: '0 1rem', fontFamily: 'sans-serif', color: '#0f172a' }}>
       
@@ -341,7 +339,7 @@ export default function Admin() {
                 <FileImage size={14} style={{ color: '#e11d48' }} /> Photo Principale (Couverture) *
               </span>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.4rem' }}>
-                <input type="file" accept="image/*" required={!imageFileString} onChange={handleMainFileUpload} style={{ fontSize: '0.82rem', color: '#475569', flex: 1 }} />
+                <input type="file" accept="image/*" onChange={handleMainFileUpload} style={{ fontSize: '0.82rem', color: '#475569', flex: 1 }} />
                 {imageFileString && (
                   <img src={imageFileString} alt="Aperçu principal" style={{ width: '48px', height: '58px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
                 )}
@@ -373,7 +371,6 @@ export default function Admin() {
                     <input 
                       type="file" 
                       accept="image/*"
-                      required
                       onChange={(e) => handleSecondaryFileUpload(index, e)} 
                       style={{ fontSize: '0.8rem', color: '#475569', flex: 1 }} 
                     />
@@ -416,9 +413,9 @@ export default function Admin() {
             <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', padding: '2rem 0' }}>Aucune pièce en ligne.</p>
           ) : (
             products.map(product => (
-              <div key={product.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '14px' }}>
+              <div key={product.id || product._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <img src={product.image} alt="" style={{ width: '44px', height: '54px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                  <img src={product.image || product.image_url} alt="" style={{ width: '44px', height: '54px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
                   <div>
                     <h4 style={{ margin: '0', fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>{product.name}</h4>
                     <span style={{ fontSize: '0.8rem', color: '#e11d48', fontWeight: '800' }}>{product.price}</span>
@@ -432,7 +429,7 @@ export default function Admin() {
                   >
                     <Eye size={14} /> Aperçu Fiche
                   </button>
-                  <button onClick={() => deleteProduct(product.id)} style={{ backgroundColor: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.5rem' }}>
+                  <button onClick={() => deleteProduct(product.id || product._id)} style={{ backgroundColor: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.5rem' }}>
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -452,7 +449,7 @@ export default function Admin() {
             <div style={{ display: 'flex', flexDirection: 'row' }}>
               <div style={{ flex: 1, backgroundColor: '#f8fafc', position: 'relative', minHeight: '340px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {(() => {
-                  const gallery = selectedProduct.images && selectedProduct.images.length > 0 ? selectedProduct.images : [selectedProduct.image];
+                  const gallery = selectedProduct.images && selectedProduct.images.length > 0 ? selectedProduct.images : [selectedProduct.image || selectedProduct.image_url];
                   return (
                     <>
                       <img src={gallery[activeImgIndex]} alt="" style={{ width: '100%', height: '100%', minHeight: '340px', maxHeight: '420px', objectFit: 'cover' }} />
@@ -472,7 +469,7 @@ export default function Admin() {
                   <span style={{ fontSize: '0.65rem', backgroundColor: '#f1f5f9', color: '#475569', padding: '0.25rem 0.6rem', borderRadius: '6px', fontWeight: '800' }}>Rayon {selectedProduct.category}</span>
                   <h3 style={{ margin: '0.75rem 0 0.25rem 0', fontSize: '1.25rem', fontWeight: '900', color: '#0f172a' }}>{selectedProduct.name}</h3>
                   <div style={{ fontSize: '1.2rem', color: '#e11d48', fontWeight: '900', marginBottom: '1.25rem' }}>{selectedProduct.price}</div>
-                  <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: '1.5' }}>{selectedProduct.desc}</p>
+                  <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: '1.5' }}>{selectedProduct.desc || selectedProduct.description}</p>
                 </div>
                 <button onClick={() => setSelectedProduct(null)} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer' }}>Fermer l'aperçu</button>
               </div>
