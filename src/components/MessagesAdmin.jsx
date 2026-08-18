@@ -9,7 +9,7 @@ export default function MessagesAdmin() {
 
   // Chargement des messages depuis le backend
   useEffect(() => {
-    fetch('http://localhost:5000/api/messages')
+    fetch('${API_URL}/api/messages')
       .then((res) => res.json())
       .then((data) => {
         setMessages(data);
@@ -26,7 +26,7 @@ export default function MessagesAdmin() {
     if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce message ?")) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/messages/${id}`, {
+      const response = await fetch(`${API_URL}/api/messages/${id}`, {
         method: 'DELETE',
       });
       

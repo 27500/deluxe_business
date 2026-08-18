@@ -14,7 +14,7 @@ export function ShopContextProvider({ children }) {
   useEffect(() => {
     const loadProductsFromBackend = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/products');
+        const response = await fetch('${API_URL}/api/products');
         if (response.ok) {
           const data = await response.json();
           setProducts(data);
@@ -26,7 +26,7 @@ export function ShopContextProvider({ children }) {
 
     const loadMessagesFromBackend = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/messages');
+        const response = await fetch('${API_URL}/api/messages');
         if (response.ok) {
           const data = await response.json();
           setMessages(data);
@@ -68,7 +68,7 @@ export function ShopContextProvider({ children }) {
   // ==========================================
   const addProduct = async (newProduct) => {
     try {
-      const response = await fetch('http://localhost:5000/api/products', {
+      const response = await fetch('${API_URL}/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProduct)
@@ -93,7 +93,7 @@ export function ShopContextProvider({ children }) {
   const deleteProduct = async (id) => {
     if (window.confirm("Voulez-vous vraiment retirer cet article du catalogue ?")) {
       try {
-        const response = await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
         if (response.ok) {
           setProducts((prevProducts) => prevProducts.filter(p => p.id !== id));
           alert("🗑️ Vêtement supprimé définitivement.");
@@ -109,7 +109,7 @@ export function ShopContextProvider({ children }) {
   // ==========================================
   const sendMessage = async (messageData) => {
     try {
-      const response = await fetch('http://localhost:5000/api/messages', {
+      const response = await fetch('${API_URL}/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(messageData)
@@ -130,7 +130,7 @@ export function ShopContextProvider({ children }) {
   const deleteMessage = async (id) => {
     if (window.confirm("Voulez-vous vraiment supprimer ce message définitivement ?")) {
       try {
-        const response = await fetch(`http://localhost:5000/api/messages/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API_URL}/api/messages/${id}`, { method: 'DELETE' });
         if (response.ok) {
           setMessages((prevMessages) => prevMessages.filter(m => m.id !== id && m._id !== id));
           alert("🗑️ Message supprimé.");

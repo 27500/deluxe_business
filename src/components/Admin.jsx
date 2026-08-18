@@ -88,7 +88,7 @@ export default function Admin() {
     const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     try {
-      await fetch('http://localhost:5000/api/auth/send-otp', {
+      await fetch('${API_URL}/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formattedEmail, otp: randomOtp }),
